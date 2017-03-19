@@ -12,6 +12,7 @@ A script to implement simple alignment for the CK_PLUS database
 | IMG_INDX         | The index of image in each subgroup      |
 | FACE_SHAPE       | The shape of the output images           |
 | VERT_SCALE       | (The height of part over the eyes) / (the height of part under the eyes) |
+| RESIZE           | Scale used to shrink the original image  |
 
 
 

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-
+import cv2
 
 ### Configuration ###
 LANDMARK_PATH = "../Landmarks"
@@ -10,6 +10,7 @@ SAVE_PATH = "./training"
 SUBJ_NUM = 20
 IMG_PER_SUBJ_NUM = 5
 IMG_INDX = 3 # start from 1
+RESIZE = 0.2 
 
 FACE_SHAPE = (320, 280)
 VERT_SCALE = 2/3 #  (the distance from center of two eyes to the bottom of image) / (that to the top of image) 
@@ -97,7 +98,8 @@ def extract_subj(candidate_list):
             img = plt.imread("{0}/{1}/{2}/{1}_{2}_{3:08d}.png".format(SUBJ_PATH, s, subgroup_list[i], IMG_INDX))
             lmX, lmY = get_eyes_centers("{0}/{1}/{2}/{1}_{2}_{3:08d}_landmarks.txt".format(LANDMARK_PATH, s, subgroup_list[i], IMG_INDX))
             imgCrop = crop_face(img, lmX, lmY, FACE_SHAPE) # TODO the shape 
-            plt.imsave(SAVE_PATH+'/'+s+"/{:03d}.png".format(i), imgCrop, cmap="gray")
+            imgCropResize = cv2.resize(imgCrop, None, fx=RESIZE, fy=RESIZE)
+            plt.imsave(SAVE_PATH+'/'+s+"/{:03d}.png".format(i), imgCropResize, cmap="gray")
 
 def main():
     subjectsList = find_subj()
