@@ -13,7 +13,8 @@ IMG_INDX = 3 # start from 1
 RESIZE = 0.2 
 
 FACE_SHAPE = (320, 280)
-VERT_SCALE = 2/3 #  (the distance from center of two eyes to the bottom of image) / (that to the top of image) 
+VERT_SCALE = 2/3   #  (the distance from center of two eyes to the bottom of image) / (that to the top of image) 
+HORI_SCALE = 1/2   # (the distance between two eyes) / (the width of image) 
 
 numOfFaces = 11
 
@@ -45,22 +46,29 @@ def get_eyes_centers(filename):
     return np.array([np.mean(ecX[0:2]), np.mean(ecX[2:4])]), np.array([np.mean(ecY[0:2]), np.mean(ecY[2:4])])
 
 def crop_face(img, eyeX, eyeY, shape):
-    limY, limX = img.shape
+    eyeDist = np.abs(eyeX[0] - eyeX[1])
     dsrY, dsrX = shape
-    x = np.mean(eyeX)
-    y = np.mean(eyeY)
-
-    y1 = int(y - ((1-VERT_SCALE) * dsrY))
-    y2 = int(y + (VERT_SCALE * dsrY))
-    assert(y1 > 0)
-    assert(y2 < limY)
-
-    x1 = int(x - (1/2 * dsrX))
-    x2 = int(x + (1/2 * dsrX))
+    centX = np.mean(eyeX)
+    centY = np.mean(eyeY)
+    
+    limY, limX = img.shape
+    
+    diffX = eyeDist * (1 / HORI_SCALE) 
+    x1 = int(centX - (0.5 * diffX))
+    x2 = int(centX + (0.5 * diffX))
     assert(x1 > 0)
     assert(x2 < limX)
 
-    return img[y1:y2, x1:x2]
+    scale = diffX / float(dsrX)
+    diffY = scale * dsrY
+
+    y1 = int(centY - ((1 - VERT_SCALE) * diffY))
+    y2 = int(centY + (VERT_SCALE) * diffY)
+    assert(y1 > 0)
+    assert(y2 < limY)
+
+    #return cv2.resize(img[y1:y2, x1:x2], shape)
+    return img[y1:y2, x1:x2]   
 
 def find_subj():
     '''
@@ -98,7 +106,7 @@ def extract_subj(candidate_list):
             img = plt.imread("{0}/{1}/{2}/{1}_{2}_{3:08d}.png".format(SUBJ_PATH, s, subgroup_list[i], IMG_INDX))
             lmX, lmY = get_eyes_centers("{0}/{1}/{2}/{1}_{2}_{3:08d}_landmarks.txt".format(LANDMARK_PATH, s, subgroup_list[i], IMG_INDX))
             imgCrop = crop_face(img, lmX, lmY, FACE_SHAPE) # TODO the shape 
-            imgCropResize = cv2.resize(imgCrop, None, fx=RESIZE, fy=RESIZE)
+            imgCropResize = cv2.resize(imgCrop, (int(FACE_SHAPE[1]*RESIZE), int(FACE_SHAPE[0]*RESIZE))) # dsize = (width, height)
             plt.imsave(SAVE_PATH+'/'+s+"/{:03d}.png".format(i), imgCropResize, cmap="gray")
 
 def main():
